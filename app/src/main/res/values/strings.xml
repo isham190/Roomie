@@ -1,3 +1,55 @@
 <resources>
     <string name="app_name">Roomie</string>
+    <string name="hint_search_room_by_name">Search room by name</string>
+    <string name="title_showing_room">Showing Rooms for</string>
+    <string name="error_loading">There was problem loading data. Please check your connectivity!</string>
+    <string name="message_room_today">Today</string>
+
+    <string name="fragment_title_filter">Filter</string>
+    <string name="fragment_subhead_filter">You can choose one filter at a time</string>
+    <string name="filter_header_date">Date</string>
+    <string name="filter_header_hour">Hour</string>
+    <string name="filter_header_capacity">Capacity</string>
+    <string name="clear_all">CLEAR ALL</string>
+    <string name="done">Done</string>
+    <string name="book">BOOK</string>
+    <string name="confirm">CONFIRM</string>
+    <string name="add">ADD</string>
+    <string name="message_equipments_available">EQUIPMENTS AVAILABLE:</string>
+    <string name="message_add_filters">Add Your Filters</string>
+    <string name="message_filter_choose">Choose based on date and time</string>
+    <string name="hint_choose_date">Choose date to filter</string>
+    <string name="choose_your_time">Choose your time</string>
+    <string name="what_you_get">What you get</string>
+    <string name="room_info_header">Room Information</string>
+    <string name="enter_attendee_details"> Please enter attendee details</string>
+
+    <string name="hint_attendee_name">Name of attendee</string>
+    <string name="hint_attendee_phone">Phone number of attendee</string>
+    <string name="hint_attendee_email">Email of attendee</string>
+    <string name="size">Size : </string>
+    <string name="capacity">Capacity : </string>
+
+    <string name="title_booking_details">Booking Details</string>
+    <string name="hint_booking_title">Booking title</string>
+    <string name="hint_booking_desc">Booking description</string>
+    <string name="dialog_booking_confirmed">Your booking has been confirmed</string>
+
+
+
+    <string-array name="array_filter_days">
+        <item>Today</item>
+        <item>Tomorrow</item>
+    </string-array>
+
+    <string-array name="array_filter_time">
+        <item>Now</item>
+        <item>Next Hour</item>
+    </string-array>
+    <string-array name="array_filter_capacity">
+        <item>One</item>
+        <item>Two</item>
+        <item>Three</item>
+    </string-array>
+
 </resources>

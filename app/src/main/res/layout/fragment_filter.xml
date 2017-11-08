@@ -1,0 +1,207 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:clickable="true"
+    android:orientation="vertical"
+    android:weightSum="100"
+    tools:context="com.ish.roomie.filter.FilterFragment">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_filter"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:layout_constraintTop_toBottomOf="parent"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+    </android.support.v7.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="90"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical"
+            android:weightSum="100">
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/filter_date_layout"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="40"
+                android:orientation="vertical"
+                app:cardElevation="@dimen/view_margin_small">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/filter_date_header"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/view_margin_medium"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="@dimen/view_margin_medium"
+                        android:fontFamily="sans-serif-thin"
+                        android:padding="@dimen/edittext_padding_medium"
+                        android:text="@string/filter_header_date"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:textStyle="bold" />
+
+
+                    <com.ish.roomie.viewutils.tagview.TagView
+                        android:id="@+id/tag_group_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center_horizontal"
+                        app:layout_constraintTop_toBottomOf="@id/filter_date_header" />
+
+
+                    <EditText
+                        android:id="@+id/filter_date_selector"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/view_margin_medium"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="@dimen/view_margin_medium"
+                        android:focusable="false"
+                        android:fontFamily="sans-serif-thin"
+                        android:hint="@string/hint_choose_date"
+                        android:inputType="none"
+                        android:padding="@dimen/edittext_padding_medium"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:textStyle="bold" />
+
+
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/filter_hour_layout"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="@dimen/view_margin_medium"
+                android:layout_weight="30"
+                android:orientation="vertical"
+                app:cardElevation="@dimen/view_margin_small"
+                app:layout_constraintTop_toBottomOf="@+id/filter_date_layout">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/filter_hour_header"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/view_margin_medium"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="@dimen/view_margin_medium"
+                        android:fontFamily="sans-serif-thin"
+                        android:padding="@dimen/edittext_padding_medium"
+                        android:text="@string/filter_header_hour"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+
+                    <com.ish.roomie.viewutils.tagview.TagView
+                        android:id="@+id/tag_group_hour"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        app:layout_constraintTop_toBottomOf="@id/filter_hour_header" />
+
+
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/filter_capacity_layout"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="@dimen/view_margin_medium"
+                android:layout_weight="30"
+                android:orientation="vertical"
+                app:cardElevation="@dimen/view_margin_small"
+                app:layout_constraintTop_toBottomOf="@+id/filter_date_layout">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/filter_capacity_header"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/view_margin_medium"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="@dimen/view_margin_medium"
+                        android:fontFamily="sans-serif-thin"
+                        android:padding="@dimen/edittext_padding_medium"
+                        android:text="@string/filter_header_capacity"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+
+                    <com.ish.roomie.viewutils.tagview.TagView
+                        android:id="@+id/tag_group_capacity"
+                        android:gravity="center_horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+        </LinearLayout>
+    </ScrollView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="10"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/clear_all_filter_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left|center_vertical"
+            android:layout_margin="@dimen/view_margin_medium"
+            android:layout_weight="1"
+            android:background="@null"
+            android:text="@string/clear_all"
+            android:textColor="@color/darkBlue" />
+
+        <Button
+            android:id="@+id/filter_done_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical"
+            android:layout_margin="@dimen/view_margin_medium"
+            android:background="@color/darkBlue"
+            android:text="@string/done"
+            android:textColor="@android:color/white" />
+
+    </android.support.v7.widget.CardView>
+</LinearLayout>

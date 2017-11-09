@@ -1,3 +1,16 @@
+/*
+ * Copyright 2013, Edmodo, Inc. 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License.
+ * You may obtain a copy of the License in the LICENSE file, or at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" 
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License. 
+ */
+
 package com.ish.timebar;
 
 import android.content.Context;
@@ -8,6 +21,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.sql.Time;
@@ -24,18 +38,19 @@ public class TimeBar extends View {
     private static final int DEFAULT_TICK_COUNT = 24;
     private static final float DEFAULT_TICK_HEIGHT_DP = 12;
     private static final float DEFAULT_BAR_WEIGHT_PX = 2;
-    private static final int DEFAULT_BAR_COLOR = Color.GREEN;
-    private static final float DEFAULT_CONNECTING_LINE_WEIGHT_PX = 4;
+    private static final int DEFAULT_BAR_COLOR = Color.RED;
+    private static final float DEFAULT_CONNECTING_LINE_WEIGHT_PX = 10;
     private static final int DEFAULT_THUMB_IMAGE_NORMAL = R.drawable.seek_thumb_normal;
     private static final int DEFAULT_THUMB_IMAGE_PRESSED = R.drawable.seek_thumb_pressed;
 
     // Corresponds to android.R.color.holo_blue_light.
-    private static final int DEFAULT_CONNECTING_LINE_COLOR = Color.RED;
+    private static final int DEFAULT_CONNECTING_LINE_COLOR = Color.YELLOW;
 
     // Indicator value tells Thumb.java whether it should draw the circle or not
     private static final float DEFAULT_THUMB_RADIUS_DP = -1;
     private static final int DEFAULT_THUMB_COLOR_NORMAL = -1;
     private static final int DEFAULT_THUMB_COLOR_PRESSED = -1;
+    private static final boolean DEFAULT_THUMB_ENABLED = true;
 
     // Instance variables for all of the customizable attributes
     private int mTickCount = DEFAULT_TICK_COUNT;
@@ -63,10 +78,13 @@ public class TimeBar extends View {
     private Thumb mRightThumb;
     private Bar mBar;
     private AvailabilityBar availabilityLine;
+    private ConnectingLine mConnectingLine;
 
     private OnTimeBarChangeListener mListener;
-    private int mLeftIndex = 0;
-    private int mRightIndex = mTickCount - 1;
+    private float mLeftIndex = 0;
+    private float mRightIndex = mTickCount - 1;
+
+    private boolean isThumbEnabled = true;
 
     List<Time> intervals = new ArrayList<>();
     List<String> availableTime = new ArrayList<>();
@@ -105,7 +123,7 @@ public class TimeBar extends View {
     /**
      * Set available time to populate in the time bar
      *
-     * @param availableTime
+     * @param availableTime time the room is available
      */
     public void setAvailableTime(List<String> availableTime) {
         this.availableTime = availableTime;
@@ -134,10 +152,13 @@ public class TimeBar extends View {
         bundle.putInt("THUMB_COLOR_NORMAL", mThumbColorNormal);
         bundle.putInt("THUMB_COLOR_PRESSED", mThumbColorPressed);
 
-        bundle.putInt("LEFT_INDEX", mLeftIndex);
-        bundle.putInt("RIGHT_INDEX", mRightIndex);
+        bundle.putFloat("LEFT_INDEX", mLeftIndex);
+        bundle.putFloat("RIGHT_INDEX", mRightIndex);
 
         bundle.putBoolean("FIRST_SET_TICK_COUNT", mFirstSetTickCount);
+
+        bundle.putBoolean("THUMB_ENABLED", isThumbEnabled);
+
 
         return bundle;
     }
@@ -166,6 +187,8 @@ public class TimeBar extends View {
             mLeftIndex = bundle.getInt("LEFT_INDEX");
             mRightIndex = bundle.getInt("RIGHT_INDEX");
             mFirstSetTickCount = bundle.getBoolean("FIRST_SET_TICK_COUNT");
+
+            isThumbEnabled = bundle.getBoolean("THUMB_ENABLED");
 
             setThumbIndices(mLeftIndex, mRightIndex);
 
@@ -239,15 +262,15 @@ public class TimeBar extends View {
         // Create the underlying bar.
         final float marginLeft = mLeftThumb.getHalfWidth();
         final float barLength = w - 2 * marginLeft;
-        mBar = new Bar(ctx, marginLeft, yPos, barLength, mTickCount, mTickHeightDP, mBarWeight, mBarColor, mTickTimeTopMarginDP, intervals);
+        mBar = new Bar(ctx, marginLeft, yPos, barLength, mTickCount, mTickHeightDP, mBarWeight, mBarColor, mTickTimeTopMarginDP, intervals, mConnectingLineWeight);
 
         // Initialize thumbs to the desired indices
         mLeftThumb.setX(marginLeft + (mLeftIndex / (float) (mTickCount - 1)) * barLength);
         mRightThumb.setX(marginLeft + (mRightIndex / (float) (mTickCount - 1)) * barLength);
 
         // Set the thumb indices.
-        final int newLeftIndex = mBar.getNearestTickIndex(mLeftThumb);
-        final int newRightIndex = mBar.getNearestTickIndex(mRightThumb);
+        final float newLeftIndex = mBar.getNearestTickIndex(mLeftThumb);
+        final float newRightIndex = mBar.getNearestTickIndex(mRightThumb);
 
         // Call the listener.
         if (newLeftIndex != mLeftIndex || newRightIndex != mRightIndex) {
@@ -261,6 +284,8 @@ public class TimeBar extends View {
         }
 
         // Create the line connecting the two thumbs.
+        mConnectingLine = new ConnectingLine(ctx, yPos, mConnectingLineWeight, mConnectingLineColor, mConnectingLineWeight);
+
         float tickWidth = getBarLength() / (intervals.size() - 1);
         availabilityLine = new AvailabilityBar(ctx, yPos, mConnectingLineWeight, mConnectingLineColor, availableTime, tickWidth);
     }
@@ -274,6 +299,42 @@ public class TimeBar extends View {
 
         availabilityLine.draw(canvas, getX() + getMarginLeft());
         mBar.drawTicks(canvas);
+
+        if (isThumbEnabled) {
+            mConnectingLine.draw(canvas, mLeftThumb, mRightThumb);
+            mLeftThumb.draw(canvas);
+            mRightThumb.draw(canvas);
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        // If this View is not enabled, don't allow for touch interactions.
+        if (!isEnabled()) {
+            return false;
+        }
+
+        switch (event.getAction()) {
+
+            case MotionEvent.ACTION_DOWN:
+                onActionDown(event.getX(), event.getY());
+                return true;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                this.getParent().requestDisallowInterceptTouchEvent(false);
+                onActionUp(event.getX(), event.getY());
+                return true;
+
+            case MotionEvent.ACTION_MOVE:
+                onActionMove(event.getX());
+                this.getParent().requestDisallowInterceptTouchEvent(true);
+                return true;
+
+            default:
+                return false;
+        }
     }
 
 
@@ -367,7 +428,7 @@ public class TimeBar extends View {
     public void setConnectingLineWeight(float connectingLineWeight) {
 
         mConnectingLineWeight = connectingLineWeight;
-        createConnectingLine();
+        createAvailabilityLine();
     }
 
     /**
@@ -379,7 +440,7 @@ public class TimeBar extends View {
     public void setConnectingLineColor(int connectingLineColor) {
 
         mConnectingLineColor = connectingLineColor;
-        createConnectingLine();
+        createAvailabilityLine();
     }
 
     /**
@@ -447,7 +508,7 @@ public class TimeBar extends View {
      * @param leftThumbIndex  Integer specifying the index of the left thumb
      * @param rightThumbIndex Integer specifying the index of the right thumb
      */
-    public void setThumbIndices(int leftThumbIndex, int rightThumbIndex) {
+    public void setThumbIndices(float leftThumbIndex, float rightThumbIndex) {
         if (indexOutOfRange(leftThumbIndex, rightThumbIndex)) {
 
             Log.e(TAG, "A thumb index is out of bounds. Check that it is between 0 and mTickCount - 1");
@@ -463,7 +524,7 @@ public class TimeBar extends View {
             createThumbs();
 
             if (mListener != null) {
-                mListener.onIndexChangeListener(this, mLeftIndex, mRightIndex);
+//                mListener.onIndexChangeListener(this, mLeftIndex, mRightIndex);
             }
         }
 
@@ -476,7 +537,7 @@ public class TimeBar extends View {
      *
      * @return the 0-based index of the left thumb
      */
-    public int getLeftIndex() {
+    public float getLeftIndex() {
         return mLeftIndex;
     }
 
@@ -485,11 +546,10 @@ public class TimeBar extends View {
      *
      * @return the 0-based index of the right thumb
      */
-    public int getRightIndex() {
+    public float getRightIndex() {
         return mRightIndex;
     }
 
-    // Private Methods /////////////////////////////////////////////////////////
 
     /**
      * Does all the functions of the constructor for TimeBar. Called by both
@@ -542,6 +602,9 @@ public class TimeBar extends View {
             mThumbColorPressed = ta.getColor(R.styleable.TimeBar_thumbColorPressed,
                     DEFAULT_THUMB_COLOR_PRESSED);
 
+            isThumbEnabled = ta.getBoolean(R.styleable.TimeBar_thumbEnabled,
+                    DEFAULT_THUMB_ENABLED);
+
         } finally {
 
             ta.recycle();
@@ -562,14 +625,14 @@ public class TimeBar extends View {
                 mTickHeightDP,
                 mBarWeight,
                 mBarColor,
-                mTickTimeTopMarginDP, intervals);
+                mTickTimeTopMarginDP, intervals, mConnectingLineWeight);
         invalidate();
     }
 
     /**
      * Creates a new AvailabilityBar.
      */
-    private void createConnectingLine() {
+    private void createAvailabilityLine() {
         float tickWidth = getBarLength() / (intervals.size() - 1);
 
         availabilityLine = new AvailabilityBar(getContext(),
@@ -646,7 +709,7 @@ public class TimeBar extends View {
      * @param rightThumbIndex Integer specifying the right thumb index.
      * @return boolean If the index is out of range.
      */
-    private boolean indexOutOfRange(int leftThumbIndex, int rightThumbIndex) {
+    private boolean indexOutOfRange(float leftThumbIndex, float rightThumbIndex) {
         return (leftThumbIndex < 0 || leftThumbIndex >= mTickCount
                 || rightThumbIndex < 0
                 || rightThumbIndex >= mTickCount);
@@ -662,6 +725,164 @@ public class TimeBar extends View {
         return (tickCount > 1);
     }
 
+    /**
+     * Handles a {@link MotionEvent#ACTION_DOWN} event.
+     *
+     * @param x the x-coordinate of the down action
+     * @param y the y-coordinate of the down action
+     */
+    private void onActionDown(float x, float y) {
+
+        if (!mLeftThumb.isPressed() && mLeftThumb.isInTargetZone(x, y)) {
+
+            pressThumb(mLeftThumb);
+
+        } else if (!mLeftThumb.isPressed() && mRightThumb.isInTargetZone(x, y)) {
+
+            pressThumb(mRightThumb);
+        }
+    }
+
+    /**
+     * Handles a {@link MotionEvent#ACTION_UP} or
+     * {@link MotionEvent#ACTION_CANCEL} event.
+     *
+     * @param x the x-coordinate of the up action
+     * @param y the y-coordinate of the up action
+     */
+    private void onActionUp(float x, float y) {
+
+        if (mLeftThumb.isPressed()) {
+
+            releaseThumb(mLeftThumb);
+
+        } else if (mRightThumb.isPressed()) {
+
+            releaseThumb(mRightThumb);
+
+        } else {
+
+            float leftThumbXDistance = Math.abs(mLeftThumb.getX() - x);
+            float rightThumbXDistance = Math.abs(mRightThumb.getX() - x);
+
+            if (leftThumbXDistance < rightThumbXDistance) {
+                mLeftThumb.setX(x);
+                releaseThumb(mLeftThumb);
+            } else {
+                mRightThumb.setX(x);
+                releaseThumb(mRightThumb);
+            }
+
+            // Get the updated nearest tick marks for each thumb.
+            final float newLeftIndex = mBar.getNearestTickIndex(mLeftThumb);
+            final float newRightIndex = mBar.getNearestTickIndex(mRightThumb);
+
+            // If either of the indices have changed, update and call the listener.
+            if (newLeftIndex != mLeftIndex || newRightIndex != mRightIndex) {
+
+                mLeftIndex = newLeftIndex;
+                mRightIndex = newRightIndex;
+
+                if (mListener != null) {
+                    mListener.onIndexChangeListener(this, mLeftIndex, mRightIndex);
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles a {@link MotionEvent#ACTION_MOVE} event.
+     *
+     * @param x the x-coordinate of the move event
+     */
+    private void onActionMove(float x) {
+
+        // Move the pressed thumb to the new x-position.
+        if (mLeftThumb.isPressed()) {
+            moveThumb(mLeftThumb, x);
+        } else if (mRightThumb.isPressed()) {
+            moveThumb(mRightThumb, x);
+        }
+
+        // If the thumbs have switched order, fix the references.
+        if (mLeftThumb.getX() > mRightThumb.getX()) {
+            final Thumb temp = mLeftThumb;
+            mLeftThumb = mRightThumb;
+            mRightThumb = temp;
+        }
+
+        // Get the updated nearest tick marks for each thumb.
+        final float newLeftIndex = mBar.getNearestTickIndex(mLeftThumb);
+        final float newRightIndex = mBar.getNearestTickIndex(mRightThumb);
+
+        // If either of the indices have changed, update and call the listener.
+        if (newLeftIndex != mLeftIndex || newRightIndex != mRightIndex) {
+
+            mLeftIndex = newLeftIndex;
+            mRightIndex = newRightIndex;
+
+            if (mListener != null) {
+                mListener.onIndexChangeListener(this, mLeftIndex, mRightIndex);
+            }
+        }
+    }
+
+    /**
+     * Set the thumb to be in the pressed state and calls invalidate() to redraw
+     * the canvas to reflect the updated state.
+     *
+     * @param thumb the thumb to press
+     */
+    private void pressThumb(Thumb thumb) {
+        if (mFirstSetTickCount == true)
+            mFirstSetTickCount = false;
+        thumb.press();
+        invalidate();
+    }
+
+    /**
+     * Set the thumb to be in the normal/un-pressed state and calls invalidate()
+     * to redraw the canvas to reflect the updated state.
+     *
+     * @param thumb the thumb to release
+     */
+    private void releaseThumb(Thumb thumb) {
+
+        final float nearestTickX = mBar.getNearestTickCoordinate(thumb);
+        thumb.setX(nearestTickX);
+        thumb.release();
+        invalidate();
+    }
+
+    /**
+     * Moves the thumb to the given x-coordinate.
+     *
+     * @param thumb the thumb to move
+     * @param x     the x-coordinate to move the thumb to
+     */
+    private void moveThumb(Thumb thumb, float x) {
+
+        // If the user has moved their finger outside the range of the bar,
+        // do not move the thumbs past the edge.
+        if (x < mBar.getLeftX() || x > mBar.getRightX()) {
+            // Do nothing.
+        } else {
+            thumb.setX(x);
+            invalidate();
+        }
+    }
+
+    // Inner Classes ///////////////////////////////////////////////////////////
+
+    /**
+     * A callback that notifies clients when the RangeBar has changed. The
+     * listener will only be called when either thumb's index has changed - not
+     * for every movement of the thumb.
+     */
+    public static interface OnRangeBarChangeListener {
+
+        public void onIndexChangeListener(TimeBar rangeBar, int leftThumbIndex, int rightThumbIndex);
+    }
     // Inner Classes ///////////////////////////////////////////////////////////
 
     /**
@@ -671,6 +892,6 @@ public class TimeBar extends View {
      */
     public static interface OnTimeBarChangeListener {
 
-        public void onIndexChangeListener(TimeBar TimeBar, int leftThumbIndex, int rightThumbIndex);
+        public void onIndexChangeListener(TimeBar TimeBar, float leftThumbIndex, float rightThumbIndex);
     }
 }

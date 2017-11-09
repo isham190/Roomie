@@ -120,9 +120,10 @@
                     <com.ish.timebar.TimeBar
                         android:id="@+id/booking_timebar"
                         android:layout_width="match_parent"
+                        android:minHeight="100dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/view_margin_large"
-                        android:layout_marginTop="@dimen/view_margin_large"
+                        android:layout_marginBottom="@dimen/view_margin_xlarge"
+                        android:layout_marginTop="@dimen/view_margin_xlarge"
                         app:endtTime="19:00"
                         app:startTime="07:00"
                         app:thumbEnabled="true"

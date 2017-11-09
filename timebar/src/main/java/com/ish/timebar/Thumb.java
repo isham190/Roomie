@@ -1,3 +1,16 @@
+/*
+ * Copyright 2013, Edmodo, Inc. 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License.
+ * You may obtain a copy of the License in the LICENSE file, or at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" 
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License. 
+ */
+
 package com.ish.timebar;
 
 import android.content.Context;
@@ -96,12 +109,12 @@ class Thumb {
             // attributes to default
             if (thumbRadiusDP == -1)
                 mThumbRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                                                           DEFAULT_THUMB_RADIUS_DP,
-                                                           res.getDisplayMetrics());
+                        DEFAULT_THUMB_RADIUS_DP,
+                        res.getDisplayMetrics());
             else
                 mThumbRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                                                           thumbRadiusDP,
-                                                           res.getDisplayMetrics());
+                        thumbRadiusDP,
+                        res.getDisplayMetrics());
 
             if (thumbColorNormal == -1)
                 mThumbColorNormal = DEFAULT_THUMB_COLOR_NORMAL;
@@ -134,8 +147,8 @@ class Thumb {
         int targetRadius = (int) Math.max(MINIMUM_TARGET_RADIUS_DP, thumbRadiusDP);
 
         mTargetRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                                                    targetRadius,
-                                                    res.getDisplayMetrics());
+                targetRadius,
+                res.getDisplayMetrics());
 
         mX = mHalfWidthNormal;
         mY = y;
@@ -174,7 +187,7 @@ class Thumb {
     /**
      * Determines if the input coordinate is close enough to this thumb to
      * consider it a press.
-     * 
+     *
      * @param x the x-coordinate of the user touch
      * @param y the y-coordinate of the user touch
      * @return true if the coordinates are within this thumb's target area;
@@ -190,34 +203,34 @@ class Thumb {
 
     /**
      * Draws this thumb on the provided canvas.
-     * 
+     *
      * @param canvas Canvas to draw on; should be the Canvas passed into {#link
      *            View#onDraw()}
      */
     void draw(Canvas canvas) {
 
         // If a bitmap is to be printed. Determined by thumbRadius attribute.
-//        if (mUseBitmap) {
-//
-//            final Bitmap bitmap = (mIsPressed) ? mImagePressed : mImageNormal;
-//
-//            if (mIsPressed) {
-//                final float topPressed = mY - mHalfHeightPressed;
-//                final float leftPressed = mX - mHalfWidthPressed;
-//                canvas.drawBitmap(bitmap, leftPressed, topPressed, null);
-//            } else {
-//                final float topNormal = mY - mHalfHeightNormal;
-//                final float leftNormal = mX - mHalfWidthNormal;
-//                canvas.drawBitmap(bitmap, leftNormal, topNormal, null);
-//            }
-//
-//        } else {
-//
-//            // Otherwise use a circle to display.
-//            if (mIsPressed)
-//                canvas.drawCircle(mX, mY, mThumbRadiusPx, mPaintPressed);
-//            else
-//                canvas.drawCircle(mX, mY, mThumbRadiusPx, mPaintNormal);
-//        }
+        if (mUseBitmap) {
+
+            final Bitmap bitmap = (mIsPressed) ? mImagePressed : mImageNormal;
+
+            if (mIsPressed) {
+                final float topPressed = mY - mHalfHeightPressed;
+                final float leftPressed = mX - mHalfWidthPressed;
+                canvas.drawBitmap(bitmap, leftPressed, topPressed, null);
+            } else {
+                final float topNormal = mY - mHalfHeightNormal;
+                final float leftNormal = mX - mHalfWidthNormal;
+                canvas.drawBitmap(bitmap, leftNormal, topNormal, null);
+            }
+
+        } else {
+
+            // Otherwise use a circle to display.
+            if (mIsPressed)
+                canvas.drawCircle(mX, mY, mThumbRadiusPx, mPaintPressed);
+            else
+                canvas.drawCircle(mX, mY, mThumbRadiusPx, mPaintNormal);
+        }
     }
 }

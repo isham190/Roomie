@@ -1,3 +1,16 @@
+/*
+ * Copyright 2013, Edmodo, Inc. 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License.
+ * You may obtain a copy of the License in the LICENSE file, or at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" 
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License. 
+ */
+
 package com.ish.timebar;
 
 import android.content.Context;
@@ -49,13 +62,13 @@ class Bar {
         float tickHeightDP,
         float BarWeight,
         int BarColor, float timeTopMargin,
-        List<Time> intervals) {
+        List<Time> intervals, float strokeWidth) {
 
         mLeftX = x;
         mRightX = x + length;
         mY = y;
 
-        mNumSegments = intervals.size() - 1;
+        mNumSegments = intervals.size()-1;
         mTickDistance = length / mNumSegments;
         mTickHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 tickHeightDP,
@@ -70,9 +83,7 @@ class Bar {
         mPaint = new Paint();
         mPaint.setColor(BarColor);
         final Resources res = ctx.getResources();
-        mPaint.setStrokeWidth(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                4,
-                res.getDisplayMetrics()));
+        mPaint.setStrokeWidth(strokeWidth);
         mPaint.setAntiAlias(true);
 
         // Initialize the paint.
@@ -131,7 +142,7 @@ class Bar {
      */
     float getNearestTickCoordinate(Thumb thumb) {
 
-        final int nearestTickIndex = getNearestTickIndex(thumb);
+        final float nearestTickIndex = getNearestTickIndex(thumb);
 
         final float nearestTickCoordinate = mLeftX + (nearestTickIndex * mTickDistance);
 
@@ -144,11 +155,11 @@ class Bar {
      * @param thumb the Thumb to find the nearest tick for
      * @return the zero-based index of the nearest tick
      */
-    int getNearestTickIndex(Thumb thumb) {
+    float getNearestTickIndex(Thumb thumb) {
 
-        final int nearestTickIndex = (int) ((thumb.getX() - mLeftX + mTickDistance / 2f) / mTickDistance);
+        final float nearestTickIndex = ((thumb.getX() - mLeftX + (mTickDistance/4) / 2f) / mTickDistance);
 
-        return nearestTickIndex;
+        return Math.round(nearestTickIndex*4)/4f; //round to the nearest quarter.
     }
 
     /**
@@ -187,7 +198,8 @@ class Bar {
             float value = timeTextPaint.measureText(time);
             canvas.drawText(time, x - (value / 2), mTickEndY + timeTopMargin, timeTextPaint);
         }
-        // Draw final tick. We draw the final tick outside the loop to avoid any
+
+        // Draw final tick. draw the final tick outside the loop to avoid any
         // rounding discrepancies.
         canvas.drawLine(mRightX, mTickStartY, mRightX, mTickEndY, tickPaint);
         Date formattedDate = new Date(intervals.get(intervals.size() - 1).getTime());

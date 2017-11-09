@@ -138,6 +138,7 @@
                         app:tickCount="12"
                         app:startTime="07:00"
                         app:endtTime="19:00"
+                        app:thumbEnabled="false"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"

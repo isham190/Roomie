@@ -26,14 +26,20 @@ import com.ish.roomie.model.Attendee;
 import com.ish.roomie.model.Room;
 import com.ish.roomie.service.ApiServiceBody;
 import com.ish.roomie.service.RetrofitClient;
+import com.ish.roomie.utils.TimeRange;
 import com.ish.timebar.TimeBar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.sql.Time;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -47,8 +53,6 @@ import io.reactivex.schedulers.Schedulers;
 
 /**
  * Fragment responsible for booking the room
- *
- * Not adding presenter since no much view logic
  */
 public class BookingFragment extends Fragment {
 
@@ -130,6 +134,10 @@ public class BookingFragment extends Fragment {
 
     @OnClick(R.id.booking_confirm_button)
     protected void onConfirmClicked() {
+        if (!isTimeSlotAllowed()) {
+            Toast.makeText(getActivity(), "Oh no! This room is already booked for the time you are looking for.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         List<Attendee> attendeeList = new ArrayList<>();
         for (int i = 0; i < detailsContainer.getChildCount(); i++) {
             View child = detailsContainer.getChildAt(i);
@@ -148,6 +156,34 @@ public class BookingFragment extends Fragment {
             attendeeList.add(attendee);
         }
         processBooking(attendeeList);
+    }
+
+    private boolean isTimeSlotAllowed() {
+        boolean isAvailable = false;
+        try {
+            Calendar startCalendar = Calendar.getInstance();
+            Calendar endCalendar = Calendar.getInstance();
+            DateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.US);
+
+            startCalendar.setTime(dateFormat.parse("07:00"));
+            int val = Math.round(bookingTimeBar.getLeftIndex() * 60); //convert into minutes
+            startCalendar.add(Calendar.MINUTE, val);
+
+            endCalendar.setTime(dateFormat.parse("07:00"));
+            int endTimeInMinutes = Math.round(bookingTimeBar.getRightIndex() * 60);
+            endCalendar.add(Calendar.MINUTE, endTimeInMinutes);
+            String formatteddate = dateFormat.format(startCalendar.getTime())+" - "+dateFormat.format(endCalendar.getTime());
+            for(String  availableTime : roomObject.getAvail()){
+                boolean isOverlapped = new TimeRange(availableTime).overlaps(new TimeRange(formatteddate));
+            if(isOverlapped){
+                isAvailable = true;
+            }
+            }
+
+        } catch (Exception e) {
+
+        }
+        return isAvailable;
     }
 
     private void processBooking(List<Attendee> attendeeList) {
@@ -216,7 +252,7 @@ public class BookingFragment extends Fragment {
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         FragmentManager fm = getActivity().getSupportFragmentManager();
-                        for(int i = 0; i < fm.getBackStackEntryCount(); ++i) {
+                        for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
                             fm.popBackStack();
                         }
                     }

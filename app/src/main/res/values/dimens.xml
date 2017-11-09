@@ -6,5 +6,6 @@
     <dimen name="view_margin_small">5dp</dimen>
     <dimen name="view_margin_medium">8dp</dimen>
     <dimen name="view_margin_large">16dp</dimen>
+    <dimen name="view_margin_xlarge">32dp</dimen>
 
 </resources>

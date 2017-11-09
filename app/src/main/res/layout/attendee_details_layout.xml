@@ -51,7 +51,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_attendee_phone"
-                    android:inputType="number"
+                    android:inputType="phone"
                     android:singleLine="true" />
             </android.support.design.widget.TextInputLayout>
 

@@ -20,21 +20,25 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.ish.roomie.R;
 import com.ish.roomie.model.Attendee;
+import com.ish.roomie.model.BookingConfirmation;
 import com.ish.roomie.model.Room;
 import com.ish.roomie.service.ApiServiceBody;
 import com.ish.roomie.service.RetrofitClient;
 import com.ish.roomie.utils.TimeRange;
 import com.ish.timebar.TimeBar;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.sql.Time;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -50,6 +54,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Response;
+import retrofit2.adapter.rxjava2.Result;
 
 /**
  * Fragment responsible for booking the room
@@ -155,7 +161,13 @@ public class BookingFragment extends Fragment {
             Attendee attendee = new Attendee(name, email, phone);
             attendeeList.add(attendee);
         }
-        processBooking(attendeeList);
+        try {
+            processBooking(attendeeList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getActivity(), "Could not complete your booking.", Toast.LENGTH_SHORT).show();
+            return;
+        }
     }
 
     private boolean isTimeSlotAllowed() {
@@ -186,7 +198,7 @@ public class BookingFragment extends Fragment {
         return isAvailable;
     }
 
-    private void processBooking(List<Attendee> attendeeList) {
+    private void processBooking(List<Attendee> attendeeList) throws ParseException, JSONException {
         String title = bookingTitleEditText.getText().toString();
         String desc = bookingDescEditText.getText().toString();
         if (TextUtils.isEmpty(title) || TextUtils.isEmpty(desc)) {
@@ -194,33 +206,50 @@ public class BookingFragment extends Fragment {
             return;
         }
 
-        Gson gson = new Gson();
-        Type type = new TypeToken<List<Bundle>>() {
-        }.getType();
-        String attendeeJson = gson.toJson(attendeeList, type);
+        JSONArray attendeeArray = new JSONArray();
+        for (Attendee attendee : attendeeList) {
+            JSONObject object = new JSONObject();
+            object.put("name", attendee.getName());
+            object.put("email", attendee.getEmail());
+            object.put("number", attendee.getNumber());
+            attendeeArray.put(object);
+        }
+
         JSONObject parent = new JSONObject();
+        Calendar startCalendar = Calendar.getInstance();
+        Calendar endCalendar = Calendar.getInstance();
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.US);
+
+        startCalendar.setTime(dateFormat.parse("07:00"));
+        int val = Math.round((bookingTimeBar.getLeftIndex() - 0.25f) * 60); //convert into minutes
+        startCalendar.add(Calendar.MINUTE, val);
+
+        endCalendar.setTime(dateFormat.parse("07:00"));
+        int endTimeInMinutes = Math.round((bookingTimeBar.getRightIndex() - 0.25f) * 60);
+        endCalendar.add(Calendar.MINUTE, endTimeInMinutes);
+
         try {
             JSONObject bookingObject = new JSONObject();
-            bookingObject.put("date", "now");
-            bookingObject.put("time_start", 1510143180);
-            bookingObject.put("time_end", 1510243180);
+            bookingObject.put("date", "today");
+            bookingObject.put("time_start", startCalendar.getTime().getTime() / 1000);
+            bookingObject.put("time_end", endCalendar.getTime().getTime() / 1000);
             bookingObject.put("title", title);
             bookingObject.put("description", desc);
             bookingObject.put("room", roomObject.getName());
 
             parent.put("booking", bookingObject);
-            parent.put("passes", attendeeJson);
+            parent.put("passes", attendeeArray);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         RetrofitClient.getAPIServiceInstance().sendpass(parent.toString()).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(new Function<Throwable, ObservableSource<? extends JSONObject>>() {
+                .onErrorResumeNext(new Function<Throwable, ObservableSource<? extends Result<BookingConfirmation>>>() {
                     @Override
-                    public ObservableSource<? extends JSONObject> apply(Throwable throwable) throws Exception {
+                    public ObservableSource<? extends Result<BookingConfirmation>> apply(Throwable throwable) throws Exception {
                         return null;
                     }
-                }).subscribe(new Observer<JSONObject>() {
+                }).subscribe(new Observer<Result<BookingConfirmation>>() {
 
             @Override
             public void onSubscribe(Disposable d) {
@@ -228,9 +257,13 @@ public class BookingFragment extends Fragment {
             }
 
             @Override
-            public void onNext(JSONObject result) {
+            public void onNext(Result<BookingConfirmation> result) {
                 Log.i(TAG, "onNext: " + result);
-                showConfirmation();
+                if (result.isError()) {
+                    Toast.makeText(getActivity(), "Failed to confirm your booking.", Toast.LENGTH_SHORT).show();
+                } else if (result.response().isSuccessful()) {
+                    showConfirmation();
+                }
             }
 
             @Override
@@ -258,6 +291,6 @@ public class BookingFragment extends Fragment {
                     }
                 });
         // Create the AlertDialog object and return it
-        builder.create().show();
+        builder.setCancelable(false).create().show();
     }
 }

@@ -166,18 +166,18 @@ public class BookingFragment extends Fragment {
             DateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.US);
 
             startCalendar.setTime(dateFormat.parse("07:00"));
-            int val = Math.round(bookingTimeBar.getLeftIndex() * 60); //convert into minutes
+            int val = Math.round((bookingTimeBar.getLeftIndex() - 0.25f) * 60); //convert into minutes
             startCalendar.add(Calendar.MINUTE, val);
 
             endCalendar.setTime(dateFormat.parse("07:00"));
-            int endTimeInMinutes = Math.round(bookingTimeBar.getRightIndex() * 60);
+            int endTimeInMinutes = Math.round((bookingTimeBar.getRightIndex() - 0.25f) * 60);
             endCalendar.add(Calendar.MINUTE, endTimeInMinutes);
-            String formatteddate = dateFormat.format(startCalendar.getTime())+" - "+dateFormat.format(endCalendar.getTime());
-            for(String  availableTime : roomObject.getAvail()){
-                boolean isOverlapped = new TimeRange(availableTime).overlaps(new TimeRange(formatteddate));
-            if(isOverlapped){
-                isAvailable = true;
-            }
+            String formateddate = dateFormat.format(startCalendar.getTime()) + " - " + dateFormat.format(endCalendar.getTime());
+            for (String availableTime : roomObject.getAvail()) {
+                boolean isOverlapped = new TimeRange(availableTime).overlaps(new TimeRange(formateddate));
+                if (isOverlapped) {
+                    isAvailable = true;
+                }
             }
 
         } catch (Exception e) {
